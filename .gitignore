@@ -18,3 +18,4 @@ tmp
 rbuv.bundle
 .rvmrc
 coverage/
+xcode/
