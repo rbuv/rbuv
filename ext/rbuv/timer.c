@@ -82,7 +82,9 @@ VALUE rbuv_timer_start(VALUE self, VALUE timeout, VALUE repeat) {
   uv_timer_start(rbuv_timer->uv_handle, _uv_timer_on_timeout,
                  uv_timeout, uv_repeat);
 
+#ifndef RBUV_RBX
   rb_gc_mark(self);
+#endif
   return self;
 }
 

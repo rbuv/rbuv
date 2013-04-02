@@ -19,3 +19,4 @@ rbuv.bundle
 .rvmrc
 coverage/
 xcode/
+.rbx/
