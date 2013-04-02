@@ -1,7 +1,12 @@
 require 'mkmf'
+require 'rbconfig'
+
+case RbConfig::CONFIG["host_os"]
+when /darwin/
+  have_framework("CoreFoundation")
+end
 
 dir_config('uv')
-have_framework("CoreFoundation")
 libuv_ok = have_library('uv', 'uv_run', ['uv.h'])
 
 ##
