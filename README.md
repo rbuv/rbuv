@@ -1,5 +1,7 @@
 [![Build Status](https://travis-ci.org/rbuv/rbuv.png?branch=master)](https://travis-ci.org/rbuv/rbuv)
+[![Dependency Status](https://gemnasium.com/rbuv/rbuv.png)](https://gemnasium.com/rbuv/rbuv)
 [![Coverage Status](https://coveralls.io/repos/rbuv/rbuv/badge.png?branch=master)](https://coveralls.io/r/rbuv/rbuv)
+[![Code Climate](https://codeclimate.com/github/rbuv/rbuv.png)](https://codeclimate.com/github/rbuv/rbuv)
 
 # Rbuv
 
