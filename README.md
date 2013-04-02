@@ -1,6 +1,6 @@
 # Rbuv
 
-TODO: Write a gem description
+libuv binding for Ruby.
 
 ## Installation
 
