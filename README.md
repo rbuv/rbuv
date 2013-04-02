@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/rbuv/rbuv.png?branch=master)](https://travis-ci.org/rbuv/rbuv)
+
 # Rbuv
 
 libuv binding for Ruby.
