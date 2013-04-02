@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/rbuv/rbuv.png?branch=master)](https://travis-ci.org/rbuv/rbuv)
+[![Coverage Status](https://coveralls.io/repos/rbuv/rbuv/badge.png?branch=master)](https://coveralls.io/r/rbuv/rbuv)
 
 # Rbuv
 
