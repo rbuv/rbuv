@@ -17,6 +17,8 @@ static void rbuv_timer_free(rbuv_timer_t *rbuv_timer);
 /* Methods */
 static VALUE rbuv_timer_start(VALUE self, VALUE timeout, VALUE repeat);
 static VALUE rbuv_timer_stop(VALUE self);
+static VALUE rbuv_timer_repeat_get(VALUE self);
+static VALUE rbuv_timer_repeat_set(VALUE self, VALUE repeat);
 
 /* Private methods */
 static void _uv_timer_on_timeout(uv_timer_t *uv_timer, int status);
@@ -29,6 +31,8 @@ void Init_rbuv_timer() {
 
   rb_define_method(cRbuvTimer, "start", rbuv_timer_start, 2);
   rb_define_method(cRbuvTimer, "stop", rbuv_timer_stop, 0);
+  rb_define_method(cRbuvTimer, "repeat", rbuv_timer_repeat_get, 0);
+  rb_define_method(cRbuvTimer, "repeat=", rbuv_timer_repeat_set, 1);
 }
 
 VALUE rbuv_timer_alloc(VALUE klass) {
@@ -97,6 +101,27 @@ VALUE rbuv_timer_stop(VALUE self) {
   uv_timer_stop(rbuv_timer->uv_handle);
   
   return self;
+}
+
+VALUE rbuv_timer_repeat_get(VALUE self) {
+  rbuv_timer_t *rbuv_timer;
+  
+  Data_Get_Struct(self, rbuv_timer_t, rbuv_timer);
+  
+  return ULL2NUM(uv_timer_get_repeat(rbuv_timer->uv_handle));
+}
+
+VALUE rbuv_timer_repeat_set(VALUE self, VALUE repeat) {
+  rbuv_timer_t *rbuv_timer;
+  uint64_t uv_repeat;
+  
+  uv_repeat = NUM2ULL(repeat);
+  
+  Data_Get_Struct(self, rbuv_timer_t, rbuv_timer);
+  
+  uv_timer_set_repeat(rbuv_timer->uv_handle, uv_repeat);
+  
+  return repeat;
 }
 
 void _uv_timer_on_timeout(uv_timer_t *uv_timer, int status) {

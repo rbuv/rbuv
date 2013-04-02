@@ -9,7 +9,8 @@ describe Rbuv::Timer do
   end
 
   context "run in loop" do
-    after(:each) { Rbuv.run_loop }
+    before(:each) { @skip_running_loop = false }
+    after(:each) { Rbuv.run_loop unless @skip_running_loop }
 
     context "when timeout == 0" do
       context "#start" do
@@ -69,6 +70,34 @@ describe Rbuv::Timer do
           timer.start 0, 1 do |t|
             t.active?.should be_true
             t.stop
+          end
+        end
+      end
+
+      context "#repeat" do
+        [0, 10, 100].each do |repeat|
+          it "should eq #{repeat}" do
+            timer = Rbuv::Timer.new
+
+            timer.start 0, repeat do |t|
+              t.repeat.should eq repeat
+              t.stop
+            end
+          end
+        end
+      end
+
+      context "#repeat=" do
+        [0, 10, 100].each do |repeat|
+          it "should eq #{repeat}" do
+            timer = Rbuv::Timer.new
+
+            timer.start 0, 0 do |t|
+              t.repeat = repeat
+            end
+            Rbuv.run_loop
+            timer.repeat.should eq repeat
+            @skip_running_loop = true
           end
         end
       end
