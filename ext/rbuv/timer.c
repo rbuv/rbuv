@@ -17,11 +17,9 @@ static void rbuv_timer_free(rbuv_timer_t *rbuv_timer);
 /* Methods */
 static VALUE rbuv_timer_start(VALUE self, VALUE timeout, VALUE repeat);
 static VALUE rbuv_timer_stop(VALUE self);
-static VALUE rbuv_timer_is_active(VALUE self);
 
 /* Private methods */
 static void _uv_timer_on_timeout(uv_timer_t *uv_timer, int status);
-static int _rbuv_timer_is_active(rbuv_timer_t *rbuv_timer);
 
 void Init_rbuv_timer() {
   id_call = rb_intern("call");
@@ -31,7 +29,6 @@ void Init_rbuv_timer() {
 
   rb_define_method(cRbuvTimer, "start", rbuv_timer_start, 2);
   rb_define_method(cRbuvTimer, "stop", rbuv_timer_stop, 0);
-  rb_define_method(cRbuvTimer, "active?", rbuv_timer_is_active, 0);
 }
 
 VALUE rbuv_timer_alloc(VALUE klass) {
@@ -102,14 +99,6 @@ VALUE rbuv_timer_stop(VALUE self) {
   return self;
 }
 
-VALUE rbuv_timer_is_active(VALUE self) {
-  rbuv_timer_t *rbuv_timer;
-
-  Data_Get_Struct(self, rbuv_timer_t, rbuv_timer);
-  
-  return _rbuv_timer_is_active(rbuv_timer) ? Qtrue : Qfalse;
-}
-
 void _uv_timer_on_timeout(uv_timer_t *uv_timer, int status) {
   VALUE timer;
   rbuv_timer_t *rbuv_timer;
@@ -118,9 +107,4 @@ void _uv_timer_on_timeout(uv_timer_t *uv_timer, int status) {
   Data_Get_Struct(timer, struct rbuv_timer_s, rbuv_timer);
   
   rb_funcall(rbuv_timer->cb, id_call, 1, timer);
-}
-
-int _rbuv_timer_is_active(struct rbuv_timer_s *rbuv_timer) {
-  assert(rbuv_timer);
-  return uv_is_active((uv_handle_t *)rbuv_timer->uv_handle);
 }

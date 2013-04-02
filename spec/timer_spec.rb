@@ -1,6 +1,8 @@
 require 'spec_helper'
 
 describe Rbuv::Timer do
+  it { should be_a_kind_of Rbuv::Handle }
+
   it ".new" do
     timer = Rbuv::Timer.new
     timer.should be_a_kind_of Rbuv::Handle
