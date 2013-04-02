@@ -52,6 +52,10 @@ void rbuv_timer_mark(rbuv_timer_t *rbuv_timer) {
 }
 
 void rbuv_timer_free(rbuv_timer_t *rbuv_timer) {
+  assert(rbuv_timer);
+  if (rbuv_timer->uv_handle) {
+    rbuv_handle_close((rbuv_handle_t *)rbuv_timer);
+  }
   free(rbuv_timer);
 }
 
@@ -114,10 +118,6 @@ void _uv_timer_on_timeout(uv_timer_t *uv_timer, int status) {
   Data_Get_Struct(timer, struct rbuv_timer_s, rbuv_timer);
   
   rb_funcall(rbuv_timer->cb, id_call, 1, timer);
-  
-  if (!_rbuv_timer_is_active(rbuv_timer)) {
-    rbuv_handle_close((rbuv_handle_t *)rbuv_timer);
-  }
 }
 
 int _rbuv_timer_is_active(struct rbuv_timer_s *rbuv_timer) {

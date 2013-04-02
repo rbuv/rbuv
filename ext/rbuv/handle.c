@@ -15,6 +15,8 @@ void Init_rbuv_handle() {
 }
 
 void rbuv_handle_close(rbuv_handle_t *rbuv_handle) {
+  assert(rbuv_handle);
+  assert(rbuv_handle->uv_handle);
   uv_close(rbuv_handle->uv_handle, _uv_handle_on_close);
 }
 
