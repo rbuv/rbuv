@@ -12,7 +12,7 @@ module Rbuv
   end
 
   def self.run
-    Timer.start 0, false do
+    Timer.start 0, 0 do
       yield
     end
     self.run_loop
