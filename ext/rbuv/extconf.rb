@@ -17,7 +17,7 @@ libuv_ok = have_library('uv', 'uv_run', ['uv.h'])
 
 if debug_arg = with_config("debug") || enable_config("debug")
   debug_def = "-DRBUV_DEBUG"
-  $defs.push(debug_arg.is_a?(String) ? "#{debug_def}=#{debug_arg}" : debug_def) unless $defs.include? /\A#{debug_arg}/
+  $defs.push(debug_arg.is_a?(String) ? "#{debug_def}=#{debug_arg}" : debug_def) unless $defs.include?(/\A#{debug_arg}/)
 end
 
 case RUBY_ENGINE
