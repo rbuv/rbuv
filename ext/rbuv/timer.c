@@ -36,9 +36,11 @@ VALUE rbuv_timer_alloc(VALUE klass) {
   VALUE timer;
 
   rbuv_timer = malloc(sizeof(*rbuv_timer));
-  rbuv_timer->uv_handle = NULL;
+  rbuv_timer->uv_handle = malloc(sizeof(*rbuv_timer->uv_handle));
+  uv_timer_init(uv_default_loop(), rbuv_timer->uv_handle);
 
   timer = Data_Wrap_Struct(klass, rbuv_timer_mark, rbuv_timer_free, rbuv_timer);
+  rbuv_timer->uv_handle->data = (void *)timer;
 
   return timer;
 }
@@ -50,9 +52,7 @@ void rbuv_timer_mark(rbuv_timer_t *rbuv_timer) {
 
 void rbuv_timer_free(rbuv_timer_t *rbuv_timer) {
   assert(rbuv_timer);
-  if (rbuv_timer->uv_handle) {
-    rbuv_handle_close((rbuv_handle_t *)rbuv_timer);
-  }
+  rbuv_handle_close((rbuv_handle_t *)rbuv_timer);
   free(rbuv_timer);
 }
 
@@ -76,18 +76,11 @@ VALUE rbuv_timer_start(VALUE self, VALUE timeout, VALUE repeat) {
   Data_Get_Struct(self, rbuv_timer_t, rbuv_timer);
   rbuv_timer->cb = block;
   
-  rbuv_timer->uv_handle = malloc(sizeof(*rbuv_timer->uv_handle));
-  uv_timer_init(uv_default_loop(), rbuv_timer->uv_handle);
-  rbuv_timer->uv_handle->data = (void *)self;
-  
   RBUV_DEBUG_LOG_DETAIL("rbuv_timer: %p, uv_handle: %p, _uv_timer_on_timeout: %p, timer: %ld",
                         rbuv_timer, rbuv_timer->uv_handle, _uv_timer_on_timeout, self);
   uv_timer_start(rbuv_timer->uv_handle, _uv_timer_on_timeout,
                  uv_timeout, uv_repeat);
 
-#ifndef RBUV_RBX
-  rb_gc_mark(self);
-#endif
   return self;
 }
 
