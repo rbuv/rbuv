@@ -1,7 +1,5 @@
 #include "timer.h"
 
-static ID id_call;
-
 VALUE cRbuvTimer;
 
 struct rbuv_timer_s {
@@ -24,8 +22,6 @@ static VALUE rbuv_timer_repeat_set(VALUE self, VALUE repeat);
 static void _uv_timer_on_timeout(uv_timer_t *uv_timer, int status);
 
 void Init_rbuv_timer() {
-  id_call = rb_intern("call");
-
   cRbuvTimer = rb_define_class_under(mRbuv, "Timer", cRbuvHandle);
   rb_define_alloc_func(cRbuvTimer, rbuv_timer_alloc);
 

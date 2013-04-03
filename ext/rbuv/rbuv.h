@@ -13,6 +13,8 @@
 #include "loop.h"
 #include "timer.h"
 
+extern ID id_call;
+
 extern VALUE mRbuv;
 
 #define RBUV_CHECK_UV_RETURN(uv_ret) do { \
