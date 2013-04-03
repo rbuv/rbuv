@@ -95,6 +95,10 @@ VALUE rbuv_timer_start(VALUE self, VALUE timeout, VALUE repeat) {
   return self;
 }
 
+/**
+ * stop the timer.
+ * @return self
+ */
 VALUE rbuv_timer_stop(VALUE self) {
   rbuv_timer_t *rbuv_timer;
 
@@ -107,10 +111,12 @@ VALUE rbuv_timer_stop(VALUE self) {
 
 VALUE rbuv_timer_repeat_get(VALUE self) {
   rbuv_timer_t *rbuv_timer;
+  VALUE repeat;
   
   Data_Get_Struct(self, rbuv_timer_t, rbuv_timer);
+  repeat = ULL2NUM(uv_timer_get_repeat(rbuv_timer->uv_handle));
   
-  return ULL2NUM(uv_timer_get_repeat(rbuv_timer->uv_handle));
+  return repeat;
 }
 
 VALUE rbuv_timer_repeat_set(VALUE self, VALUE repeat) {
