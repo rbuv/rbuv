@@ -84,6 +84,8 @@ VALUE rbuv_timer_start(VALUE self, VALUE timeout, VALUE repeat) {
   uv_timer_init(uv_default_loop(), rbuv_timer->uv_handle);
   rbuv_timer->uv_handle->data = (void *)self;
   
+  RBUV_DEBUG_LOG_DETAIL("rbuv_timer: %p, uv_handle: %p, _uv_timer_on_timeout: %p, timer: %ld",
+                        rbuv_timer, rbuv_timer->uv_handle, _uv_timer_on_timeout, self);
   uv_timer_start(rbuv_timer->uv_handle, _uv_timer_on_timeout,
                  uv_timeout, uv_repeat);
 

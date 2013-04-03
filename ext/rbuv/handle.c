@@ -34,5 +34,7 @@ void rbuv_handle_close(rbuv_handle_t *rbuv_handle) {
 }
 
 void _uv_handle_on_close(uv_handle_t *uv_handle) {
+  RBUV_DEBUG_LOG_DETAIL("uv_handle: %p, handle: %ld",
+                        uv_handle, (VALUE)uv_handle->data);
   free(uv_handle);
 }
