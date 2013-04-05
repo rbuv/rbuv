@@ -5,6 +5,10 @@ struct rbuv_handle_s {
   VALUE cb_on_close;
 };
 
+typedef struct {
+  uv_handle_t *uv_handle;
+} _uv_handle_on_close_arg_t;
+
 VALUE cRbuvHandle;
 
 /* Methods */
@@ -15,6 +19,7 @@ static VALUE rbuv_handle_is_closing(VALUE self);
 /* Private methods */
 static void _uv_handle_close(uv_handle_t *uv_handle);
 static void _uv_handle_on_close(uv_handle_t *uv_handle);
+static void _uv_handle_on_close_no_gvl(_uv_handle_on_close_arg_t *arg);
 
 void Init_rbuv_handle() {
   cRbuvHandle = rb_define_class_under(mRbuv, "Handle", rb_cObject);
@@ -85,6 +90,13 @@ void _uv_handle_close(uv_handle_t *uv_handle) {
 }
 
 void _uv_handle_on_close(uv_handle_t *uv_handle) {
+  _uv_handle_on_close_arg_t arg = { .uv_handle = uv_handle };
+  rb_thread_call_with_gvl((rbuv_rb_blocking_function_t)_uv_handle_on_close_no_gvl, &arg);
+}
+
+void _uv_handle_on_close_no_gvl(_uv_handle_on_close_arg_t *arg) {
+  uv_handle_t *uv_handle = arg->uv_handle;
+
   VALUE handle;
   rbuv_handle_t *rbuv_handle;
   VALUE on_close;

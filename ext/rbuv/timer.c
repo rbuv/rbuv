@@ -8,6 +8,11 @@ struct rbuv_timer_s {
   VALUE cb_on_timeout;
 };
 
+typedef struct {
+  uv_timer_t *uv_timer;
+  int status;
+} _uv_timer_on_timeout_no_gvl_arg_t;
+
 /* Allocator/deallocator */
 static VALUE rbuv_timer_alloc(VALUE klass);
 static void rbuv_timer_mark(rbuv_timer_t *rbuv_timer);
@@ -21,6 +26,7 @@ static VALUE rbuv_timer_repeat_set(VALUE self, VALUE repeat);
 
 /* Private methods */
 static void _uv_timer_on_timeout(uv_timer_t *uv_timer, int status);
+static void _uv_timer_on_timeout_no_gvl(_uv_timer_on_timeout_no_gvl_arg_t *arg);
 
 void Init_rbuv_timer() {
   cRbuvTimer = rb_define_class_under(mRbuv, "Timer", cRbuvHandle);
@@ -130,6 +136,14 @@ VALUE rbuv_timer_repeat_set(VALUE self, VALUE repeat) {
 }
 
 void _uv_timer_on_timeout(uv_timer_t *uv_timer, int status) {
+  _uv_timer_on_timeout_no_gvl_arg_t reg = { .uv_timer = uv_timer, .status = status };
+  rb_thread_call_with_gvl((rbuv_rb_blocking_function_t)_uv_timer_on_timeout_no_gvl, &reg);
+}
+
+void _uv_timer_on_timeout_no_gvl(_uv_timer_on_timeout_no_gvl_arg_t *arg) {
+  uv_timer_t *uv_timer = arg->uv_timer;
+  int status = arg->status;
+
   VALUE timer;
   rbuv_timer_t *rbuv_timer;
   

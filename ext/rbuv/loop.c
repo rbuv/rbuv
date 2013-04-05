@@ -4,6 +4,10 @@ struct rbuv_handle_s {
   uv_handle_t *uv_handle;
 };
 
+typedef struct {
+  int mode;
+} _rbuv_loop_run_arg_t;
+
 VALUE cRbuvLoop;
 
 /* Methods */
@@ -14,6 +18,7 @@ static VALUE rbuv_loop_s_run_nowait(VALUE klass);
 
 /* Private methods */
 static void _rbuv_loop_run(uv_run_mode mode);
+static void _rbuv_loop_run_no_gvl(_rbuv_loop_run_arg_t *arg);
 
 void Init_rbuv_loop() {
   cRbuvLoop = rb_define_class_under(mRbuv, "Loop", cRbuvHandle);
@@ -46,5 +51,11 @@ VALUE rbuv_loop_s_run_nowait(VALUE klass) {
 }
 
 void _rbuv_loop_run(uv_run_mode mode) {
-  uv_run(uv_default_loop(), mode);
+  _rbuv_loop_run_arg_t arg = { .mode = mode };
+  rb_thread_call_without_gvl((rbuv_rb_blocking_function_t)_rbuv_loop_run_no_gvl,
+                             &arg, RUBY_UBF_IO, 0);
+}
+
+void _rbuv_loop_run_no_gvl(_rbuv_loop_run_arg_t *arg) {
+  uv_run(uv_default_loop(), arg->mode);
 }

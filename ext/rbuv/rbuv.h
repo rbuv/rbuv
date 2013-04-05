@@ -4,6 +4,7 @@
 #include <assert.h>
 
 #include <ruby.h>
+#include <ruby/thread.h>
 #include <uv.h>
 
 #include "debug.h"
@@ -30,5 +31,7 @@ extern VALUE mRbuv;
 #define RBUV_CONTAINTER_OF(ptr, type, member) ({ \
   const typeof( ((type *)0)->member ) *__mptr = (ptr); \
   (type *)( (char *)__mptr - RBUV_OFFSETOF(type, member) );})
+
+typedef void *(*rbuv_rb_blocking_function_t)(void *);
 
 #endif  /* RBUV_H_ */

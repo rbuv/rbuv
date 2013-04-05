@@ -12,6 +12,17 @@ typedef struct {
   uv_buf_t buf;
 } rbuv_write_req_t;
 
+typedef struct {
+  uv_stream_t *uv_stream;
+  int status;
+} _uv_stream_on_connection_arg_t;
+
+typedef struct {
+  uv_stream_t *uv_stream;
+  ssize_t nread;
+  uv_buf_t *buf;
+} _uv_stream_on_read_arg_t;
+
 VALUE cRbuvStream;
 
 /* Methods */
@@ -28,8 +39,10 @@ static VALUE rbuv_stream_write(VALUE self, VALUE data);
 
 /* Private methods */
 static void _uv_stream_on_connection(uv_stream_t *server, int status);
+static void _uv_stream_on_connection_no_gvl(_uv_stream_on_connection_arg_t *arg);
 static uv_buf_t _uv_alloc_buffer(uv_handle_t *handle, size_t suggested_size);
 static void _uv_stream_on_read(uv_stream_t *stream, ssize_t nread, uv_buf_t buf);
+static void _uv_stream_on_read_no_gvl(_uv_stream_on_read_arg_t *arg);
 static void _uv_stream_on_write(uv_write_t *req, int status);
 
 void Init_rbuv_stream() {
@@ -154,6 +167,14 @@ VALUE rbuv_stream_write(VALUE self, VALUE data) {
 }
 
 void _uv_stream_on_connection(uv_stream_t *uv_server, int status) {
+  _uv_stream_on_connection_arg_t arg = { .uv_stream = uv_server, .status = status };
+  rb_thread_call_with_gvl((rbuv_rb_blocking_function_t)_uv_stream_on_connection_no_gvl, &arg);
+}
+
+void _uv_stream_on_connection_no_gvl(_uv_stream_on_connection_arg_t *arg) {
+  uv_stream_t *uv_server = arg->uv_stream;
+  int status = arg->status;
+
   VALUE server;
   rbuv_stream_t *rbuv_server;
   VALUE on_connection;
@@ -179,6 +200,15 @@ uv_buf_t _uv_alloc_buffer(uv_handle_t *handle, size_t suggested_size) {
 }
 
 void _uv_stream_on_read(uv_stream_t *uv_stream, ssize_t nread, uv_buf_t buf) {
+  _uv_stream_on_read_arg_t arg = { .uv_stream = uv_stream, .nread = nread, .buf = &buf };
+  rb_thread_call_with_gvl((rbuv_rb_blocking_function_t)_uv_stream_on_read_no_gvl, &arg);
+}
+
+void _uv_stream_on_read_no_gvl(_uv_stream_on_read_arg_t *arg) {
+  uv_stream_t *uv_stream = arg->uv_stream;
+  ssize_t nread = arg->nread;
+  uv_buf_t *buf = arg->buf;
+
   VALUE stream;
   rbuv_stream_t *rbuv_stream;
   VALUE on_read;
@@ -195,7 +225,7 @@ void _uv_stream_on_read(uv_stream_t *uv_stream, ssize_t nread, uv_buf_t buf) {
                         RSTRING_PTR(rb_inspect(on_read)));
 
   if (nread > 0) {
-    rb_funcall(on_read, id_call, 1, rb_str_new(buf.base, nread));
+    rb_funcall(on_read, id_call, 1, rb_str_new(buf->base, nread));
   } else {
     uv_err = uv_last_error(uv_default_loop());
     if (uv_err.code == UV_EOF) {
@@ -206,8 +236,8 @@ void _uv_stream_on_read(uv_stream_t *uv_stream, ssize_t nread, uv_buf_t buf) {
     rb_funcall(on_read, id_call, 2, Qnil, error);
   }
 
-  assert(buf.base);
-  free(buf.base);
+  assert(buf->base);
+  free(buf->base);
 }
 
 void _uv_stream_on_write(uv_write_t *uv_req, int status) {
