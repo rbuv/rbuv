@@ -38,6 +38,7 @@ VALUE rbuv_timer_alloc(VALUE klass) {
   rbuv_timer = malloc(sizeof(*rbuv_timer));
   rbuv_timer->uv_handle = malloc(sizeof(*rbuv_timer->uv_handle));
   uv_timer_init(uv_default_loop(), rbuv_timer->uv_handle);
+  rbuv_timer->cb = Qnil;
 
   timer = Data_Wrap_Struct(klass, rbuv_timer_mark, rbuv_timer_free, rbuv_timer);
   rbuv_timer->uv_handle->data = (void *)timer;
