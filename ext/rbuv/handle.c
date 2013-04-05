@@ -10,6 +10,7 @@ VALUE cRbuvHandle;
 static VALUE rbuv_handle_is_active(VALUE self);
 
 /* Private methods */
+static void _uv_handle_close(uv_handle_t *uv_handle);
 static void _uv_handle_on_close(uv_handle_t *uv_handle);
 
 void Init_rbuv_handle() {
@@ -29,8 +30,12 @@ VALUE rbuv_handle_is_active(VALUE self) {
 
 void rbuv_handle_close(rbuv_handle_t *rbuv_handle) {
   assert(rbuv_handle);
-  assert(rbuv_handle->uv_handle);
-  uv_close(rbuv_handle->uv_handle, _uv_handle_on_close);
+  _uv_handle_close(rbuv_handle->uv_handle);
+}
+
+void _uv_handle_close(uv_handle_t *uv_handle) {
+  assert(uv_handle);
+  uv_close(uv_handle, _uv_handle_on_close);
 }
 
 void _uv_handle_on_close(uv_handle_t *uv_handle) {

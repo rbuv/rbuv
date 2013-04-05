@@ -12,6 +12,8 @@
 #include "handle.h"
 #include "loop.h"
 #include "timer.h"
+#include "stream.h"
+#include "tcp.h"
 
 extern ID id_call;
 
@@ -23,5 +25,10 @@ extern VALUE mRbuv;
     rb_raise(eRbuvError, "%s", uv_strerror(err)); \
   } \
 } while(0)
+
+#define RBUV_OFFSETOF(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)
+#define RBUV_CONTAINTER_OF(ptr, type, member) ({ \
+  const typeof( ((type *)0)->member ) *__mptr = (ptr); \
+  (type *)( (char *)__mptr - RBUV_OFFSETOF(type, member) );})
 
 #endif  /* RBUV_H_ */

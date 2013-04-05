@@ -12,4 +12,6 @@ void Init_rbuv() {
   Init_rbuv_handle();
   Init_rbuv_loop();
   Init_rbuv_timer();
+  Init_rbuv_stream();
+  Init_rbuv_tcp();
 }
