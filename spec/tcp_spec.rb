@@ -112,17 +112,49 @@ describe Rbuv::Tcp do
     end
   end
 
-  it "#close" do
-    on_close = mock
-    on_close.should_receive(:call).once
-
-    Rbuv.run do
-      tcp = Rbuv::Tcp.new
-
-      tcp.close do
-        on_close.call
+  context "#close" do
+    it "affect #closing?" do
+      Rbuv.run do
+        tcp = Rbuv::Tcp.new
+        tcp.close do
+          tcp.closing?.should be_true
+        end
+        tcp.closing?.should be_true
       end
     end
-  end
 
+    it "call once" do
+      on_close = mock
+      on_close.should_receive(:call).once
+
+      Rbuv.run do
+        tcp = Rbuv::Tcp.new
+
+        tcp.close do
+          on_close.call
+        end
+      end
+    end
+
+    it "call multi-times" do
+      on_close = mock
+      on_close.should_receive(:call).once
+
+      no_on_close = mock
+      no_on_close.should_not_receive(:call)
+
+      Rbuv.run do
+        tcp = Rbuv::Tcp.new
+
+        tcp.close do
+          on_close.call
+        end
+
+        tcp.close do
+          no_on_close.call
+        end
+      end
+    end
+
+  end
 end

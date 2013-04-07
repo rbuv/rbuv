@@ -41,9 +41,8 @@ VALUE rbuv_handle_close(VALUE self) {
   }
 
   Data_Get_Struct(self, rbuv_handle_t, rbuv_handle);
-  rbuv_handle->cb_on_close = block;
 
-  _rbuv_handle_close(rbuv_handle);
+  _rbuv_handle_close(rbuv_handle, block);
 
   return Qnil;
 }
@@ -74,13 +73,16 @@ int _rbuv_handle_is_closing(rbuv_handle_t *rbuv_handle) {
   return uv_is_closing(rbuv_handle->uv_handle);
 }
 
-void _rbuv_handle_close(rbuv_handle_t *rbuv_handle) {
+void _rbuv_handle_close(rbuv_handle_t *rbuv_handle, VALUE block) {
   assert(rbuv_handle);
-  RBUV_DEBUG_LOG_DETAIL("rbuv_handle: %p, uv_handle: %p",
-                        rbuv_handle, rbuv_handle->uv_handle);
+  RBUV_DEBUG_LOG_DETAIL("rbuv_handle: %p, uv_handle: %p, block: %s",
+                        rbuv_handle, rbuv_handle->uv_handle,
+                        RSTRING_PTR(rb_inspect(block)));
   if (!_rbuv_handle_is_closing(rbuv_handle)) {
-    RBUV_DEBUG_LOG_DETAIL("closing rbuv_handle: %p, uv_handle: %p",
-                          rbuv_handle, rbuv_handle->uv_handle);
+    RBUV_DEBUG_LOG_DETAIL("closing rbuv_handle: %p, uv_handle: %p, block: %s",
+                          rbuv_handle, rbuv_handle->uv_handle,
+                          RSTRING_PTR(rb_inspect(block)));
+    rbuv_handle->cb_on_close = block;
     _uv_handle_close(rbuv_handle->uv_handle);
   }
 }
@@ -104,13 +106,16 @@ void _uv_handle_on_close_no_gvl(_uv_handle_on_close_arg_t *arg) {
 
   handle = (VALUE)uv_handle->data;
 
-  RBUV_DEBUG_LOG_DETAIL("uv_handle: %p, handle: %s", uv_handle, RSTRING_PTR(rb_inspect(handle)));
+  RBUV_DEBUG_LOG_DETAIL("uv_handle: %p, handle: %s",
+                        uv_handle, RSTRING_PTR(rb_inspect(handle)));
 
   Data_Get_Struct(handle, rbuv_handle_t, rbuv_handle);
 
   on_close = rbuv_handle->cb_on_close;
+  rbuv_handle->cb_on_close = Qnil;
 
-  RBUV_DEBUG_LOG_DETAIL("handle: %s, on_close: %s", RSTRING_PTR(rb_inspect(handle)),
+  RBUV_DEBUG_LOG_DETAIL("handle: %s, on_close: %s",
+                        RSTRING_PTR(rb_inspect(handle)),
                         RSTRING_PTR(rb_inspect(on_close)));
 
   if (RTEST(on_close)) {
