@@ -111,4 +111,17 @@ describe Rbuv::Tcp do
     end
   end
 
+  it "#close" do
+    on_close = mock
+    on_close.should_receive(:call).once
+
+    Rbuv.run do
+      tcp = Rbuv::Tcp.new
+
+      tcp.close do
+        on_close.call
+      end
+    end
+  end
+
 end

@@ -41,6 +41,7 @@ VALUE rbuv_handle_close(VALUE self) {
   }
 
   Data_Get_Struct(self, rbuv_handle_t, rbuv_handle);
+  rbuv_handle->cb_on_close = block;
 
   _rbuv_handle_close(rbuv_handle);
 
