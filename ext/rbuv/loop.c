@@ -52,8 +52,13 @@ VALUE rbuv_loop_s_run_nowait(VALUE klass) {
 
 void _rbuv_loop_run(uv_run_mode mode) {
   _rbuv_loop_run_arg_t arg = { .mode = mode };
+#ifdef HAVE_RB_THREAD_CALL_WITHOUT_GVL
   rb_thread_call_without_gvl((rbuv_rb_blocking_function_t)_rbuv_loop_run_no_gvl,
                              &arg, RUBY_UBF_IO, 0);
+#else
+  rb_thread_blocking_region((rb_blocking_function_t *)_rbuv_loop_run_no_gvl,
+                            &arg, RUBY_UBF_IO, 0);
+#endif
 }
 
 void _rbuv_loop_run_no_gvl(_rbuv_loop_run_arg_t *arg) {

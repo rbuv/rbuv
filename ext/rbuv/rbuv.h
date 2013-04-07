@@ -4,7 +4,9 @@
 #include <assert.h>
 
 #include <ruby.h>
-#include <ruby/thread.h>
+#ifdef HAVE_RUBY_THREAD_H
+# include <ruby/thread.h>
+#endif
 #include <uv.h>
 
 #include "debug.h"

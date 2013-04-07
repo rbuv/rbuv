@@ -1,6 +1,9 @@
 require 'mkmf'
 require 'rbconfig'
 
+have_header('ruby/thread.h')
+have_func('rb_thread_call_without_gvl', 'ruby/thread.h')
+
 case RbConfig::CONFIG["host_os"]
 when /darwin/
   have_framework("CoreFoundation")
