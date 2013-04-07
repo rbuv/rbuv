@@ -20,3 +20,5 @@ rbuv.bundle
 coverage/
 xcode/
 .rbx/
+.ruby-gemset
+.ruby-version
