@@ -87,6 +87,7 @@ describe Rbuv::Tcp do
         end
 
         sock = TCPSocket.new '127.0.0.1', 60000
+        sock.close
       end
     end
   end
