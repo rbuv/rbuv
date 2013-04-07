@@ -9,6 +9,8 @@ extern VALUE cRbuvHandle;
 
 void Init_rbuv_handle();
 
-void rbuv_handle_close(rbuv_handle_t *rbuv_handle);
+int _rbuv_handle_is_active(rbuv_handle_t *rbuv_handle);
+int _rbuv_handle_is_closing(rbuv_handle_t *rbuv_handle);
+void _rbuv_handle_close(rbuv_handle_t *rbuv_handle);
 
 #endif  /* RBUV_HANDLE_H_ */

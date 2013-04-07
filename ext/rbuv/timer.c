@@ -4,7 +4,8 @@ VALUE cRbuvTimer;
 
 struct rbuv_timer_s {
   uv_timer_t *uv_handle;
-  VALUE cb;
+  VALUE cb_on_close;
+  VALUE cb_on_timeout;
 };
 
 /* Allocator/deallocator */
@@ -38,7 +39,8 @@ VALUE rbuv_timer_alloc(VALUE klass) {
   rbuv_timer = malloc(sizeof(*rbuv_timer));
   rbuv_timer->uv_handle = malloc(sizeof(*rbuv_timer->uv_handle));
   uv_timer_init(uv_default_loop(), rbuv_timer->uv_handle);
-  rbuv_timer->cb = Qnil;
+  rbuv_timer->cb_on_close = Qnil;
+  rbuv_timer->cb_on_timeout = Qnil;
 
   timer = Data_Wrap_Struct(klass, rbuv_timer_mark, rbuv_timer_free, rbuv_timer);
   rbuv_timer->uv_handle->data = (void *)timer;
@@ -48,12 +50,16 @@ VALUE rbuv_timer_alloc(VALUE klass) {
 
 void rbuv_timer_mark(rbuv_timer_t *rbuv_timer) {
   assert(rbuv_timer);
-  rb_gc_mark(rbuv_timer->cb);
+  rb_gc_mark(rbuv_timer->cb_on_close);
+  rb_gc_mark(rbuv_timer->cb_on_timeout);
 }
 
 void rbuv_timer_free(rbuv_timer_t *rbuv_timer) {
   assert(rbuv_timer);
-  rbuv_handle_close((rbuv_handle_t *)rbuv_timer);
+  RBUV_DEBUG_LOG_DETAIL("rbuv_timer: %p, uv_handle: %p", rbuv_timer, rbuv_timer->uv_handle);
+  if (!_rbuv_handle_is_closing((rbuv_handle_t *)rbuv_timer)) {
+    uv_close((uv_handle_t *)rbuv_timer->uv_handle, NULL);
+  }
   free(rbuv_timer);
 }
 
@@ -75,10 +81,11 @@ VALUE rbuv_timer_start(VALUE self, VALUE timeout, VALUE repeat) {
   uv_repeat = NUM2ULL(repeat);
   
   Data_Get_Struct(self, rbuv_timer_t, rbuv_timer);
-  rbuv_timer->cb = block;
+  rbuv_timer->cb_on_timeout = block;
   
-  RBUV_DEBUG_LOG_DETAIL("rbuv_timer: %p, uv_handle: %p, _uv_timer_on_timeout: %p, timer: %ld",
-                        rbuv_timer, rbuv_timer->uv_handle, _uv_timer_on_timeout, self);
+  RBUV_DEBUG_LOG_DETAIL("rbuv_timer: %p, uv_handle: %p, _uv_timer_on_timeout: %p, timer: %s",
+                        rbuv_timer, rbuv_timer->uv_handle, _uv_timer_on_timeout,
+                        RSTRING_PTR(rb_inspect(self)));
   uv_timer_start(rbuv_timer->uv_handle, _uv_timer_on_timeout,
                  uv_timeout, uv_repeat);
 
@@ -129,5 +136,5 @@ void _uv_timer_on_timeout(uv_timer_t *uv_timer, int status) {
   timer = (VALUE)uv_timer->data;
   Data_Get_Struct(timer, struct rbuv_timer_s, rbuv_timer);
   
-  rb_funcall(rbuv_timer->cb, id_call, 1, timer);
+  rb_funcall(rbuv_timer->cb_on_timeout, id_call, 1, timer);
 }

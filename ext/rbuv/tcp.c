@@ -2,6 +2,7 @@
 
 struct rbuv_tcp_s {
   uv_tcp_t *uv_handle;
+  VALUE cb_on_close;
   VALUE cb_on_connection;
   VALUE cb_on_read;
 };
@@ -45,30 +46,37 @@ VALUE rbuv_tcp_alloc(VALUE klass) {
   rbuv_tcp = malloc(sizeof(*rbuv_tcp));
   rbuv_tcp->uv_handle = malloc(sizeof(*rbuv_tcp->uv_handle));
   uv_tcp_init(uv_default_loop(), rbuv_tcp->uv_handle);
+  rbuv_tcp->cb_on_close = Qnil;
   rbuv_tcp->cb_on_connection = Qnil;
   rbuv_tcp->cb_on_read = Qnil;
   
   tcp = Data_Wrap_Struct(klass, rbuv_tcp_mark, rbuv_tcp_free, rbuv_tcp);
   rbuv_tcp->uv_handle->data = (void *)tcp;
   
-  RBUV_DEBUG_LOG_DETAIL("rbuv_tcp: %p, uv_handle: %p, tcp: %ld",
-                        rbuv_tcp, rbuv_tcp->uv_handle, tcp);
+  RBUV_DEBUG_LOG_DETAIL("rbuv_tcp: %p, uv_handle: %p, tcp: %s",
+                        rbuv_tcp, rbuv_tcp->uv_handle,
+                        RSTRING_PTR(rb_inspect(tcp)));
   
   return tcp;
 }
 
 void rbuv_tcp_mark(rbuv_tcp_t *rbuv_tcp) {
   assert(rbuv_tcp);
-  RBUV_DEBUG_LOG_DETAIL("rbuv_tcp: %p, uv_handle: %p, self: %ld", rbuv_tcp,
-                        rbuv_tcp->uv_handle, (VALUE)rbuv_tcp->uv_handle->data);
+  RBUV_DEBUG_LOG_DETAIL("rbuv_tcp: %p, uv_handle: %p, self: %lx",
+                        rbuv_tcp, rbuv_tcp->uv_handle,
+                        (VALUE)rbuv_tcp->uv_handle->data);
+  rb_gc_mark(rbuv_tcp->cb_on_close);
   rb_gc_mark(rbuv_tcp->cb_on_connection);
   rb_gc_mark(rbuv_tcp->cb_on_read);
 }
 
 void rbuv_tcp_free(rbuv_tcp_t *rbuv_tcp) {
-  RBUV_DEBUG_LOG_DETAIL("rbuv_tcp: %p, uv_handle: %p, self: %ld", rbuv_tcp,
-                        rbuv_tcp->uv_handle, (VALUE)rbuv_tcp->uv_handle->data);
-  rbuv_handle_close((rbuv_handle_t *)rbuv_tcp);
+  RBUV_DEBUG_LOG_DETAIL("rbuv_tcp: %p, uv_handle: %p", rbuv_tcp, rbuv_tcp->uv_handle);
+
+  if (!_rbuv_handle_is_closing((rbuv_handle_t *)rbuv_tcp)) {
+    uv_close((uv_handle_t *)rbuv_tcp->uv_handle, NULL);
+  }
+
   free(rbuv_tcp);
 }
 
@@ -84,10 +92,11 @@ VALUE rbuv_tcp_bind(VALUE self, VALUE ip, VALUE port) {
   bind_addr = uv_ip4_addr(uv_ip, uv_port);
   
   Data_Get_Struct(self, rbuv_tcp_t, rbuv_tcp);
-  uv_tcp_bind(rbuv_tcp->uv_handle, bind_addr);
+  RBUV_CHECK_UV_RETURN(uv_tcp_bind(rbuv_tcp->uv_handle, bind_addr));
   
-  RBUV_DEBUG_LOG_DETAIL("self: %ld, ip: %s, port: %d, rbuv_tcp: %p, uv_handle: %p",
-                        self, uv_ip, uv_port, rbuv_tcp, rbuv_tcp->uv_handle);
+  RBUV_DEBUG_LOG_DETAIL("self: %s, ip: %s, port: %d, rbuv_tcp: %p, uv_handle: %p",
+                        RSTRING_PTR(rb_inspect(self)), uv_ip, uv_port, rbuv_tcp,
+                        rbuv_tcp->uv_handle);
   
   return self;
 }

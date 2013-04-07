@@ -2,6 +2,7 @@
 
 struct rbuv_stream_s {
   uv_stream_t *uv_handle;
+  VALUE cb_on_close;
   VALUE cb_on_connection;
   VALUE cb_on_read;
 };
@@ -60,9 +61,15 @@ VALUE rbuv_stream_listen(VALUE self, VALUE backlog) {
   
   uv_backlog = FIX2INT(backlog);
   
-  RBUV_DEBUG_LOG_DETAIL("self: %ld, backlog: %d, block: %ld, rbuv_server: %p, uv_handle: %p, _uv_stream_on_connection: %p",
-                        self, uv_backlog, block, rbuv_server, rbuv_server->uv_handle, _uv_stream_on_connection);
-  uv_listen(rbuv_server->uv_handle, uv_backlog, _uv_stream_on_connection);
+  RBUV_DEBUG_LOG_DETAIL("self: %s, backlog: %d, block: %s, rbuv_server: %p, "
+                        "uv_handle: %p, _uv_stream_on_connection: %p",
+                        RSTRING_PTR(rb_inspect(self)),
+                        uv_backlog,
+                        RSTRING_PTR(rb_inspect(block)),
+                        rbuv_server,
+                        rbuv_server->uv_handle,
+                        _uv_stream_on_connection);
+  RBUV_CHECK_UV_RETURN(uv_listen(rbuv_server->uv_handle, uv_backlog, _uv_stream_on_connection));
   
   return self;
 }
@@ -160,7 +167,9 @@ void _uv_stream_on_connection(uv_stream_t *uv_server, int status) {
   Data_Get_Struct(server, rbuv_stream_t, rbuv_server);
   on_connection = rbuv_server->cb_on_connection;
   
-  RBUV_DEBUG_LOG_DETAIL("server: %ld, on_connection: %ld", server, on_connection);
+  RBUV_DEBUG_LOG_DETAIL("server: %s, on_connection: %s",
+                        RSTRING_PTR(rb_inspect(server)),
+                        RSTRING_PTR(rb_inspect(on_connection)));
   
   rb_funcall(on_connection, id_call, 1, server);
 }
@@ -176,12 +185,14 @@ void _uv_stream_on_read(uv_stream_t *uv_stream, ssize_t nread, uv_buf_t buf) {
   uv_err_t uv_err;
   VALUE error;
 
-  RBUV_DEBUG_LOG("uv_stream: %p, nread: %ld", uv_stream, nread);
+  RBUV_DEBUG_LOG("uv_stream: %p, nread: %s", uv_stream, RSTRING_PTR(rb_inspect(nread)));
 
   stream = (VALUE)uv_stream->data;
   Data_Get_Struct(stream, rbuv_stream_t, rbuv_stream);
   on_read = rbuv_stream->cb_on_read;
-  RBUV_DEBUG_LOG_DETAIL("stream: %ld, on_read: %ld", stream, on_read);
+  RBUV_DEBUG_LOG_DETAIL("stream: %s, on_read: %s",
+                        RSTRING_PTR(rb_inspect(stream)),
+                        RSTRING_PTR(rb_inspect(on_read)));
 
   if (nread > 0) {
     rb_funcall(on_read, id_call, 1, rb_str_new(buf.base, nread));
