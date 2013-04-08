@@ -17,9 +17,9 @@ module Rbuv
     alias stop stop_loop
 
     def run
-      Signal.start(Signal::INT) { raise Interrupt, '' }
-      Signal.start(Signal::TERM) { exit }
-      Timer.start(0, 0) { yield }
+      Timer.start 0, 0 do
+        yield
+      end
       self.run_loop
     end
 
