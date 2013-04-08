@@ -1,7 +1,7 @@
 module Rbuv
   class Timer
     def self.start(*args)
-      Timer.new.start(*args) { |timer| yield timer }
+      self.new.start(*args) { |*block_args| yield(*block_args) }
     end
   end
 end
