@@ -1,4 +1,4 @@
-#include "error.h"
+#include "rbuv_error.h"
 
 VALUE eRbuvError;
 

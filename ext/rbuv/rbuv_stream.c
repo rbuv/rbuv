@@ -1,4 +1,4 @@
-#include "stream.h"
+#include "rbuv_stream.h"
 
 struct rbuv_stream_s {
   uv_stream_t *uv_handle;

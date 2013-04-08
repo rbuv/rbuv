@@ -9,14 +9,14 @@
 #endif
 #include <uv.h>
 
-#include "debug.h"
+#include "rbuv_debug.h"
 
-#include "error.h"
-#include "handle.h"
-#include "loop.h"
-#include "timer.h"
-#include "stream.h"
-#include "tcp.h"
+#include "rbuv_error.h"
+#include "rbuv_handle.h"
+#include "rbuv_loop.h"
+#include "rbuv_timer.h"
+#include "rbuv_stream.h"
+#include "rbuv_tcp.h"
 
 extern ID id_call;
 

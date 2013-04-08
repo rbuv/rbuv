@@ -1,4 +1,4 @@
-#include "timer.h"
+#include "rbuv_timer.h"
 
 VALUE cRbuvTimer;
 

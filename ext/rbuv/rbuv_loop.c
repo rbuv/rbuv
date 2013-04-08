@@ -1,4 +1,4 @@
-#include "loop.h"
+#include "rbuv_loop.h"
 
 struct rbuv_handle_s {
   uv_handle_t *uv_handle;

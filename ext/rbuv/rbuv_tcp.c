@@ -1,4 +1,4 @@
-#include "tcp.h"
+#include "rbuv_tcp.h"
 
 struct rbuv_tcp_s {
   uv_tcp_t *uv_handle;
