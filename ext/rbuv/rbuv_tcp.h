@@ -2,7 +2,6 @@
 #define RBUV_TCP_H_
 
 #include "rbuv.h"
-#include "rbuv_stream.h"
 
 typedef struct rbuv_tcp_s rbuv_tcp_t;
 

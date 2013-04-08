@@ -2,7 +2,6 @@
 #define RBUV_STREAM_H_
 
 #include "rbuv.h"
-#include "rbuv_handle.h"
 
 typedef struct rbuv_stream_s rbuv_stream_t;
 

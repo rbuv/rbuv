@@ -2,7 +2,6 @@
 #define RBUV_TIMER_H_
 
 #include "rbuv.h"
-#include "rbuv_handle.h"
 
 typedef struct rbuv_timer_s rbuv_timer_t;
 
