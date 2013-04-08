@@ -17,16 +17,12 @@ module Rbuv
     alias stop stop_loop
 
     def run
-      Timer.start 0, 0 do
-        yield
-      end
+      Timer.start(0, 0) { yield }
       self.run_loop
     end
 
     def run_block
-      Timer.start 0, 0 do
-        yield
-      end
+      Timer.start(0, 0) { yield }
       Loop.run_once
     end
 
