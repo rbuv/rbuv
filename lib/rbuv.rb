@@ -1,6 +1,7 @@
 require 'rbuv/rbuv'
 require 'rbuv/version'
 require 'rbuv/timer'
+require 'rbuv/signal'
 
 module Rbuv
   class << self

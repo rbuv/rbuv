@@ -17,6 +17,7 @@
 #include "rbuv_timer.h"
 #include "rbuv_stream.h"
 #include "rbuv_tcp.h"
+#include "rbuv_signal.h"
 
 extern ID id_call;
 
