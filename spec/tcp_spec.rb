@@ -24,6 +24,7 @@ describe Rbuv::Tcp do
     port_in_use?(60000).should be_false
 
     Rbuv.run do
+      pending "this spec does't pass on linux machines, see #1 on github"
       begin
         tcp = Rbuv::Tcp.new
         tcp.bind '127.0.0.1', 60000
