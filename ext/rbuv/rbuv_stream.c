@@ -227,7 +227,7 @@ void _uv_stream_on_read_no_gvl(_uv_stream_on_read_arg_t *arg) {
   uv_err_t uv_err;
   VALUE error;
 
-  RBUV_DEBUG_LOG("uv_stream: %p, nread: %s", uv_stream, RSTRING_PTR(rb_inspect(nread)));
+  RBUV_DEBUG_LOG("uv_stream: %p, nread: %lu", uv_stream, nread);
 
   stream = (VALUE)uv_stream->data;
   Data_Get_Struct(stream, rbuv_stream_t, rbuv_stream);
