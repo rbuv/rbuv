@@ -121,7 +121,7 @@ VALUE rbuv_tcp_connect(VALUE self, VALUE ip, VALUE port) {
   int uv_port;
   rbuv_tcp_t *rbuv_tcp;
   struct sockaddr_in connect_addr;
-  uv_connect_t uv_connect;
+  uv_connect_t *uv_connect;
 
   rb_need_block();
   block = rb_block_proc();
@@ -132,9 +132,10 @@ VALUE rbuv_tcp_connect(VALUE self, VALUE ip, VALUE port) {
   Data_Get_Struct(self, rbuv_tcp_t, rbuv_tcp);
   rbuv_tcp->cb_on_connection = block;
 
+  uv_connect = malloc(sizeof(*uv_connect));
   connect_addr = uv_ip4_addr(uv_ip, uv_port);
 
-  RBUV_CHECK_UV_RETURN(uv_tcp_connect(&uv_connect, rbuv_tcp->uv_handle,
+  RBUV_CHECK_UV_RETURN(uv_tcp_connect(uv_connect, rbuv_tcp->uv_handle,
                                       connect_addr, _uv_tcp_on_connect));
 
   RBUV_DEBUG_LOG_DETAIL("self: %s, ip: %s, port: %d, rbuv_tcp: %p, uv_handle: %p",
@@ -154,4 +155,6 @@ void _uv_tcp_on_connect_no_gvl(_uv_tcp_on_connect_arg_t *arg) {
   int status = arg->status;
 
   __uv_stream_on_connection_no_gvl(uv_connect->handle, status);
+  
+  free(uv_connect);
 }
