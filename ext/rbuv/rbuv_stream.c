@@ -40,6 +40,7 @@ static VALUE rbuv_stream_write(VALUE self, VALUE data);
 /* Private methods */
 static void _uv_stream_on_connection(uv_stream_t *server, int status);
 static void _uv_stream_on_connection_no_gvl(_uv_stream_on_connection_arg_t *arg);
+void __uv_stream_on_connection_no_gvl(uv_stream_t *stream, int status);
 static uv_buf_t _uv_alloc_buffer(uv_handle_t *handle, size_t suggested_size);
 static void _uv_stream_on_read(uv_stream_t *stream, ssize_t nread, uv_buf_t buf);
 static void _uv_stream_on_read_no_gvl(_uv_stream_on_read_arg_t *arg);
@@ -166,33 +167,44 @@ VALUE rbuv_stream_write(VALUE self, VALUE data) {
   return data;
 }
 
-void _uv_stream_on_connection(uv_stream_t *uv_server, int status) {
-  _uv_stream_on_connection_arg_t arg = { .uv_stream = uv_server, .status = status };
+void _uv_stream_on_connection(uv_stream_t *uv_stream, int status) {
+  _uv_stream_on_connection_arg_t arg = { .uv_stream = uv_stream, .status = status };
   rb_thread_call_with_gvl((rbuv_rb_blocking_function_t)_uv_stream_on_connection_no_gvl, &arg);
 }
 
 void _uv_stream_on_connection_no_gvl(_uv_stream_on_connection_arg_t *arg) {
-  uv_stream_t *uv_server = arg->uv_stream;
+  uv_stream_t *uv_stream = arg->uv_stream;
   int status = arg->status;
 
-  VALUE server;
-  rbuv_stream_t *rbuv_server;
+  __uv_stream_on_connection_no_gvl(uv_stream, status);
+}
+
+void __uv_stream_on_connection_no_gvl(uv_stream_t *uv_stream, int status) {
+  VALUE stream;
+  rbuv_stream_t *rbuv_stream;
   VALUE on_connection;
+  VALUE error;
+  uv_err_t uv_err;
   
-  RBUV_DEBUG_LOG("uv_server: %p, status: %d", uv_server, status);
-  if (status == -1) {
-    return;
-  }
+  RBUV_DEBUG_LOG("uv_stream: %p, status: %d", uv_stream, status);
   
-  server = (VALUE)uv_server->data;
-  Data_Get_Struct(server, rbuv_stream_t, rbuv_server);
-  on_connection = rbuv_server->cb_on_connection;
+  stream = (VALUE)uv_stream->data;
+  Data_Get_Struct(stream, rbuv_stream_t, rbuv_stream);
+  on_connection = rbuv_stream->cb_on_connection;
   
-  RBUV_DEBUG_LOG_DETAIL("server: %s, on_connection: %s",
-                        RSTRING_PTR(rb_inspect(server)),
+  RBUV_DEBUG_LOG_DETAIL("stream: %s, on_connection: %s",
+                        RSTRING_PTR(rb_inspect(stream)),
                         RSTRING_PTR(rb_inspect(on_connection)));
   
-  rb_funcall(on_connection, id_call, 1, server);
+  if (status == -1) {
+    uv_err = uv_last_error(uv_default_loop());
+    RBUV_DEBUG_LOG_DETAIL("uv_stream: %p, status: %d, error: %s", uv_stream, status,
+                          uv_strerror(uv_err));
+    error = rb_exc_new2(eRbuvError, uv_strerror(uv_err));
+    rb_funcall(on_connection, id_call, 2, stream, error);
+  } else {
+    rb_funcall(on_connection, id_call, 1, stream);
+  }
 }
 
 uv_buf_t _uv_alloc_buffer(uv_handle_t *handle, size_t suggested_size) {

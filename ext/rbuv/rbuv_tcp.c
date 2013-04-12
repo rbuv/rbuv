@@ -7,6 +7,11 @@ struct rbuv_tcp_s {
   VALUE cb_on_read;
 };
 
+typedef struct {
+  uv_connect_t *uv_connect;
+  int status;
+} _uv_tcp_on_connect_arg_t;
+
 VALUE cRbuvTcp;
 
 /* Allocator/deallocator */
@@ -30,6 +35,13 @@ static void rbuv_tcp_free(rbuv_tcp_t *rbuv_tcp);
  */
 static VALUE rbuv_tcp_bind(VALUE self, VALUE ip, VALUE port);
 //static VALUE rbuv_tcp_bind6(VALUE self, VALUE ip, VALUE port);
+static VALUE rbuv_tcp_connect(VALUE self, VALUE ip, VALUE port);
+//static VALUE rbuv_tcp_connect6(VALUE self, VALUE ip, VALUE port);
+
+/* Private methods */
+static void _uv_tcp_on_connect(uv_connect_t *uv_connect, int status);
+static void _uv_tcp_on_connect_no_gvl(_uv_tcp_on_connect_arg_t *arg);
+extern void __uv_stream_on_connection_no_gvl(uv_stream_t *uv_stream, int status);
 
 void Init_rbuv_tcp() {
   cRbuvTcp = rb_define_class_under(mRbuv, "Tcp", cRbuvStream);
@@ -37,6 +49,8 @@ void Init_rbuv_tcp() {
   
   rb_define_method(cRbuvTcp, "bind", rbuv_tcp_bind, 2);
   //rb_define_method(cRbuvTcp, "bind6", rbuv_tcp_bind6, 2);
+  rb_define_method(cRbuvTcp, "connect", rbuv_tcp_connect, 2);
+  //rb_define_method(cRbuvTcp, "connect6", rbuv_tcp_connect6, 2);
 }
 
 VALUE rbuv_tcp_alloc(VALUE klass) {
@@ -99,4 +113,45 @@ VALUE rbuv_tcp_bind(VALUE self, VALUE ip, VALUE port) {
                         rbuv_tcp->uv_handle);
   
   return self;
+}
+
+VALUE rbuv_tcp_connect(VALUE self, VALUE ip, VALUE port) {
+  VALUE block;
+  const char *uv_ip;
+  int uv_port;
+  rbuv_tcp_t *rbuv_tcp;
+  struct sockaddr_in connect_addr;
+  uv_connect_t uv_connect;
+
+  rb_need_block();
+  block = rb_block_proc();
+
+  uv_ip = RSTRING_PTR(ip);
+  uv_port = FIX2INT(port);
+
+  Data_Get_Struct(self, rbuv_tcp_t, rbuv_tcp);
+  rbuv_tcp->cb_on_connection = block;
+
+  connect_addr = uv_ip4_addr(uv_ip, uv_port);
+
+  RBUV_CHECK_UV_RETURN(uv_tcp_connect(&uv_connect, rbuv_tcp->uv_handle,
+                                      connect_addr, _uv_tcp_on_connect));
+
+  RBUV_DEBUG_LOG_DETAIL("self: %s, ip: %s, port: %d, rbuv_tcp: %p, uv_handle: %p",
+                        RSTRING_PTR(rb_inspect(self)), uv_ip, uv_port, rbuv_tcp,
+                        rbuv_tcp->uv_handle);
+
+  return self;
+}
+
+void _uv_tcp_on_connect(uv_connect_t *uv_connect, int status) {
+  _uv_tcp_on_connect_arg_t arg = { .uv_connect = uv_connect, .status = status };
+  rb_thread_call_with_gvl((rbuv_rb_blocking_function_t)_uv_tcp_on_connect_no_gvl, &arg);
+}
+
+void _uv_tcp_on_connect_no_gvl(_uv_tcp_on_connect_arg_t *arg) {
+  uv_connect_t *uv_connect = arg->uv_connect;
+  int status = arg->status;
+
+  __uv_stream_on_connection_no_gvl(uv_connect->handle, status);
 }

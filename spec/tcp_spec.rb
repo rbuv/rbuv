@@ -155,6 +155,35 @@ describe Rbuv::Tcp do
           no_on_close.call
         end
       end
+    end # context "#close"
+
+    context "#connect" do
+      it "when server does not exist" do
+        Rbuv.run do
+          c = Rbuv::Tcp.new
+          c.connect('127.0.0.1', 60000) do |client, error|
+            error.should be_a_kind_of Rbuv::Error
+            c.close
+          end
+        end
+      end
+
+      it "when server exists" do
+        s = TCPServer.new '127.0.0.1', 60000
+        s.listen 10
+
+        on_connect = mock
+        on_connect.should_receive(:call).once
+
+        Rbuv.run do
+          c = Rbuv::Tcp.new
+          c.connect('127.0.0.1', 60000) do
+            on_connect.call
+            c.close
+            s.close
+          end
+        end
+      end
     end
 
   end
