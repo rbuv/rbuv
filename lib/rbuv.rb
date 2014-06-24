@@ -7,11 +7,11 @@ module Rbuv
   class << self
 
     def run_loop
-      Loop.run
+      Loop.default.run
     end
 
     def stop_loop
-      Loop.stop
+      Loop.default.stop
     end
 
     alias stop stop_loop
@@ -23,7 +23,7 @@ module Rbuv
 
     def run_block
       Timer.start(0, 0) { yield }
-      Loop.run_once
+      Loop.default.run_once
     end
 
   end

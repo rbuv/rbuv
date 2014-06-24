@@ -3,6 +3,10 @@
 
 #include "rbuv.h"
 
+struct rbuv_loop_s {
+  uv_loop_t* uv_handle;
+  bool is_default;
+};
 typedef struct rbuv_loop_s rbuv_loop_t;
 
 extern VALUE cRbuvLoop;

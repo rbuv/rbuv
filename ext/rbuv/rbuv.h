@@ -3,6 +3,7 @@
 
 #include <assert.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 #include <ruby.h>
 #ifdef HAVE_RUBY_THREAD_H
