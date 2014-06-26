@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Rbuv::Signal do
   it "#start" do
     block = double
-    block.should_receive(:call).once
+    expect(block).to receive(:call).once
 
     Rbuv.run do
       sig = Rbuv::Signal.new
@@ -18,7 +18,7 @@ describe Rbuv::Signal do
 
   it "#stop" do
     block = double
-    block.should_receive(:call).once
+    expect(block).to receive(:call).once
 
     Rbuv.run do
       sig = Rbuv::Signal.new

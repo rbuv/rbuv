@@ -18,29 +18,29 @@ rescue Errno::ECONNREFUSED
 end
 
 describe Rbuv::Tcp do
-  it { should be_a_kind_of Rbuv::Stream }
+  it { is_expected.to be_a_kind_of Rbuv::Stream }
 
   it "#bind" do
-    port_in_use?(60000).should be false
+    expect(port_in_use?(60000)).to be false
 
     Rbuv.run do
-      pending "this spec does't pass on linux machines, see #1 on github"
+      skip "this spec does't pass on linux machines, see #1 on github"
       begin
         tcp = Rbuv::Tcp.new
         tcp.bind '127.0.0.1', 60000
 
-        port_in_use?(60000).should be true
+        expect(port_in_use?(60000)).to be true
       ensure
         tcp.close
       end
 
-      port_in_use?(60000).should be false
+      expect(port_in_use?(60000)).to be false
     end
   end
 
   context "#listen" do
     it "when address not in use" do
-      port_in_use?(60000).should be false
+      expect(port_in_use?(60000)).to be false
 
       Rbuv.run do
         begin
@@ -48,17 +48,17 @@ describe Rbuv::Tcp do
           tcp.bind '127.0.0.1', 60000
           tcp.listen(10) { Rbuv.stop_loop }
 
-          port_in_use?(60000).should be true
+          expect(port_in_use?(60000)).to be true
         ensure
           tcp.close
         end
 
-        port_in_use?(60000).should be false
+        expect(port_in_use?(60000)).to be false
       end
     end
 
     it "when address already in use" do
-      port_in_use?(60000).should be false
+      expect(port_in_use?(60000)).to be false
 
       Rbuv.run do
         begin
@@ -76,7 +76,7 @@ describe Rbuv::Tcp do
 
     it "should call the on_connection callback when connection coming" do
       on_connection = double
-      on_connection.should_receive(:call).once
+      expect(on_connection).to receive(:call).once
 
       Rbuv.run do
         tcp = Rbuv::Tcp.new
@@ -94,7 +94,7 @@ describe Rbuv::Tcp do
   end
 
   it "#accept" do
-    port_in_use?(60000).should be false
+    expect(port_in_use?(60000)).to be false
 
     Rbuv.run do
       tcp = Rbuv::Tcp.new
@@ -118,15 +118,15 @@ describe Rbuv::Tcp do
       Rbuv.run do
         tcp = Rbuv::Tcp.new
         tcp.close do
-          tcp.closing?.should be true
+          expect(tcp.closing?).to be true
         end
-        tcp.closing?.should be true
+        expect(tcp.closing?).to be true
       end
     end
 
     it "call once" do
       on_close = double
-      on_close.should_receive(:call).once
+      expect(on_close).to receive(:call).once
 
       Rbuv.run do
         tcp = Rbuv::Tcp.new
@@ -139,10 +139,10 @@ describe Rbuv::Tcp do
 
     it "call multi-times" do
       on_close = double
-      on_close.should_receive(:call).once
+      expect(on_close).to receive(:call).once
 
       no_on_close = double
-      no_on_close.should_not_receive(:call)
+      expect(no_on_close).not_to receive(:call)
 
       Rbuv.run do
         tcp = Rbuv::Tcp.new
@@ -162,7 +162,7 @@ describe Rbuv::Tcp do
         Rbuv.run do
           c = Rbuv::Tcp.new
           c.connect('127.0.0.1', 60000) do |client, error|
-            error.should be_a_kind_of Rbuv::Error
+            expect(error).to be_a_kind_of Rbuv::Error
             c.close
           end
         end
@@ -173,7 +173,7 @@ describe Rbuv::Tcp do
         s.listen 10
 
         on_connect = double
-        on_connect.should_receive(:call).once
+        expect(on_connect).to receive(:call).once
 
         Rbuv.run do
           c = Rbuv::Tcp.new

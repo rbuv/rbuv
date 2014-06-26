@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Rbuv::Timer do
-  it { should be_a_kind_of Rbuv::Handle }
+  it { is_expected.to be_a_kind_of Rbuv::Handle }
 
   context "when timeout == 0" do
     context "#start" do
@@ -9,7 +9,7 @@ describe Rbuv::Timer do
         timer = Rbuv::Timer.new
 
         block = double
-        block.should_receive(:call).once
+        expect(block).to receive(:call).once
 
         Rbuv.run do
           timer.start 0, 0 do
@@ -23,7 +23,7 @@ describe Rbuv::Timer do
 
         block = double
         count_limit = 10
-        block.should_receive(:call).exactly(count_limit)
+        expect(block).to receive(:call).exactly(count_limit)
 
         count = 0
 
@@ -43,7 +43,7 @@ describe Rbuv::Timer do
       timer = Rbuv::Timer.new
 
       block = double
-      block.should_receive(:call).once
+      expect(block).to receive(:call).once
 
       Rbuv.run do
         timer.start 0, 1 do |t|
@@ -59,7 +59,7 @@ describe Rbuv::Timer do
 
         Rbuv.run do
           timer.start 0, 0 do |t|
-            t.active?.should be false
+            expect(t.active?).to be false
           end
         end
       end
@@ -69,7 +69,7 @@ describe Rbuv::Timer do
 
         Rbuv.run do
           timer.start 0, 1 do |t|
-            t.active?.should be true
+            expect(t.active?).to be true
             t.stop
           end
         end
@@ -83,7 +83,7 @@ describe Rbuv::Timer do
 
           Rbuv.run do
             timer.start 0, repeat do |t|
-              t.repeat.should eq repeat
+              expect(t.repeat).to eq repeat
               t.stop
             end
           end
@@ -101,7 +101,7 @@ describe Rbuv::Timer do
               t.repeat = repeat
             end
           end
-          timer.repeat.should eq repeat
+          expect(timer.repeat).to eq repeat
         end
       end
     end
@@ -110,7 +110,7 @@ describe Rbuv::Timer do
       context 'be valid' do
         it "when repeat == 0" do
           block = double
-          block.should_receive(:call).once
+          expect(block).to receive(:call).once
 
           Rbuv.run do
             Rbuv::Timer.start(0, 0) { block.call }
@@ -119,7 +119,7 @@ describe Rbuv::Timer do
 
         it "when repeat != 0" do
           block = double
-          block.should_receive(:call).once
+          expect(block).to receive(:call).once
 
           Rbuv.run do
             Rbuv::Timer.start 0, 1 do |t|
