@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe Rbuv::Signal do
   it "#start" do
-    block = mock
+    block = double
     block.should_receive(:call).once
 
     Rbuv.run do
@@ -17,7 +17,7 @@ describe Rbuv::Signal do
   end
 
   it "#stop" do
-    block = mock
+    block = double
     block.should_receive(:call).once
 
     Rbuv.run do

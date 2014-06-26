@@ -21,7 +21,7 @@ describe Rbuv::Tcp do
   it { should be_a_kind_of Rbuv::Stream }
 
   it "#bind" do
-    port_in_use?(60000).should be_false
+    port_in_use?(60000).should be false
 
     Rbuv.run do
       pending "this spec does't pass on linux machines, see #1 on github"
@@ -29,18 +29,18 @@ describe Rbuv::Tcp do
         tcp = Rbuv::Tcp.new
         tcp.bind '127.0.0.1', 60000
 
-        port_in_use?(60000).should be_true
+        port_in_use?(60000).should be true
       ensure
         tcp.close
       end
 
-      port_in_use?(60000).should be_false
+      port_in_use?(60000).should be false
     end
   end
 
   context "#listen" do
     it "when address not in use" do
-      port_in_use?(60000).should be_false
+      port_in_use?(60000).should be false
 
       Rbuv.run do
         begin
@@ -48,17 +48,17 @@ describe Rbuv::Tcp do
           tcp.bind '127.0.0.1', 60000
           tcp.listen(10) { Rbuv.stop_loop }
 
-          port_in_use?(60000).should be_true
+          port_in_use?(60000).should be true
         ensure
           tcp.close
         end
 
-        port_in_use?(60000).should be_false
+        port_in_use?(60000).should be false
       end
     end
 
     it "when address already in use" do
-      port_in_use?(60000).should be_false
+      port_in_use?(60000).should be false
 
       Rbuv.run do
         begin
@@ -75,7 +75,7 @@ describe Rbuv::Tcp do
     end
 
     it "should call the on_connection callback when connection coming" do
-      on_connection = mock
+      on_connection = double
       on_connection.should_receive(:call).once
 
       Rbuv.run do
@@ -94,7 +94,7 @@ describe Rbuv::Tcp do
   end
 
   it "#accept" do
-    port_in_use?(60000).should be_false
+    port_in_use?(60000).should be false
 
     Rbuv.run do
       tcp = Rbuv::Tcp.new
@@ -118,14 +118,14 @@ describe Rbuv::Tcp do
       Rbuv.run do
         tcp = Rbuv::Tcp.new
         tcp.close do
-          tcp.closing?.should be_true
+          tcp.closing?.should be true
         end
-        tcp.closing?.should be_true
+        tcp.closing?.should be true
       end
     end
 
     it "call once" do
-      on_close = mock
+      on_close = double
       on_close.should_receive(:call).once
 
       Rbuv.run do
@@ -138,10 +138,10 @@ describe Rbuv::Tcp do
     end
 
     it "call multi-times" do
-      on_close = mock
+      on_close = double
       on_close.should_receive(:call).once
 
-      no_on_close = mock
+      no_on_close = double
       no_on_close.should_not_receive(:call)
 
       Rbuv.run do
@@ -172,7 +172,7 @@ describe Rbuv::Tcp do
         s = TCPServer.new '127.0.0.1', 60000
         s.listen 10
 
-        on_connect = mock
+        on_connect = double
         on_connect.should_receive(:call).once
 
         Rbuv.run do

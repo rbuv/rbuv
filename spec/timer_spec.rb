@@ -8,7 +8,7 @@ describe Rbuv::Timer do
       it "when repeat == 0" do
         timer = Rbuv::Timer.new
 
-        block = mock
+        block = double
         block.should_receive(:call).once
 
         Rbuv.run do
@@ -21,7 +21,7 @@ describe Rbuv::Timer do
       it "when repeat != 0" do
         timer = Rbuv::Timer.new
 
-        block = mock
+        block = double
         count_limit = 10
         block.should_receive(:call).exactly(count_limit)
 
@@ -42,7 +42,7 @@ describe Rbuv::Timer do
     it "#stop" do
       timer = Rbuv::Timer.new
 
-      block = mock
+      block = double
       block.should_receive(:call).once
 
       Rbuv.run do
@@ -59,7 +59,7 @@ describe Rbuv::Timer do
 
         Rbuv.run do
           timer.start 0, 0 do |t|
-            t.active?.should be_false
+            t.active?.should be false
           end
         end
       end
@@ -69,7 +69,7 @@ describe Rbuv::Timer do
 
         Rbuv.run do
           timer.start 0, 1 do |t|
-            t.active?.should be_true
+            t.active?.should be true
             t.stop
           end
         end
@@ -109,7 +109,7 @@ describe Rbuv::Timer do
     context ".start" do
       context 'be valid' do
         it "when repeat == 0" do
-          block = mock
+          block = double
           block.should_receive(:call).once
 
           Rbuv.run do
@@ -118,7 +118,7 @@ describe Rbuv::Timer do
         end
 
         it "when repeat != 0" do
-          block = mock
+          block = double
           block.should_receive(:call).once
 
           Rbuv.run do
