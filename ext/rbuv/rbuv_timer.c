@@ -14,7 +14,7 @@ typedef struct {
 } _uv_timer_on_timeout_no_gvl_arg_t;
 
 /* Allocator/deallocator */
-static VALUE rbuv_timer_alloc(VALUE klass);
+static VALUE rbuv_timer_s_new(int argc, VALUE *argv, VALUE klass);
 static void rbuv_timer_mark(rbuv_timer_t *rbuv_timer);
 static void rbuv_timer_free(rbuv_timer_t *rbuv_timer);
 
@@ -30,7 +30,7 @@ static void _uv_timer_on_timeout_no_gvl(_uv_timer_on_timeout_no_gvl_arg_t *arg);
 
 void Init_rbuv_timer() {
   cRbuvTimer = rb_define_class_under(mRbuv, "Timer", cRbuvHandle);
-  rb_define_alloc_func(cRbuvTimer, rbuv_timer_alloc);
+  rb_define_singleton_method(cRbuvTimer, "new", rbuv_timer_s_new, -1);
 
   rb_define_method(cRbuvTimer, "start", rbuv_timer_start, 2);
   rb_define_method(cRbuvTimer, "stop", rbuv_timer_stop, 0);
@@ -38,18 +38,30 @@ void Init_rbuv_timer() {
   rb_define_method(cRbuvTimer, "repeat=", rbuv_timer_repeat_set, 1);
 }
 
-VALUE rbuv_timer_alloc(VALUE klass) {
-  rbuv_timer_t *rbuv_timer;
-  VALUE timer;
+VALUE rbuv_timer_s_new(int argc, VALUE *argv, VALUE klass) {
+  VALUE loop;
+  rb_scan_args(argc, argv, "01", &loop);
 
-  rbuv_timer = malloc(sizeof(*rbuv_timer));
+  uv_loop_t *uv_loop;
+  if (loop == Qnil) {
+    uv_loop = uv_default_loop();
+  } else {
+    rbuv_loop_t *rbuv_loop;
+    Data_Get_Struct(loop, rbuv_loop_t, rbuv_loop);
+    uv_loop = rbuv_loop->uv_handle;
+  }
+
+  rbuv_timer_t *rbuv_timer = malloc(sizeof(*rbuv_timer));
   rbuv_timer->uv_handle = malloc(sizeof(*rbuv_timer->uv_handle));
-  uv_timer_init(uv_default_loop(), rbuv_timer->uv_handle);
   rbuv_timer->cb_on_close = Qnil;
   rbuv_timer->cb_on_timeout = Qnil;
 
-  timer = Data_Wrap_Struct(klass, rbuv_timer_mark, rbuv_timer_free, rbuv_timer);
+  VALUE timer = Data_Wrap_Struct(klass, rbuv_timer_mark, rbuv_timer_free, rbuv_timer);
   rbuv_timer->uv_handle->data = (void *)timer;
+
+  uv_timer_init(uv_loop, rbuv_timer->uv_handle);
+
+  rb_obj_call_init(timer, argc, argv);
 
   return timer;
 }

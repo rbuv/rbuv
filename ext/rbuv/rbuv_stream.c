@@ -83,7 +83,7 @@ VALUE rbuv_stream_listen(VALUE self, VALUE backlog) {
                         rbuv_server,
                         rbuv_server->uv_handle,
                         _uv_stream_on_connection);
-  RBUV_CHECK_UV_RETURN(uv_listen(rbuv_server->uv_handle, uv_backlog, _uv_stream_on_connection));
+  RBUV_CHECK_UV_RETURN(uv_listen(rbuv_server->uv_handle, uv_backlog, _uv_stream_on_connection), rbuv_server->uv_handle->loop);
   
   return self;
 }
@@ -95,7 +95,7 @@ VALUE rbuv_stream_accept(VALUE self, VALUE client) {
   Data_Get_Struct(self, rbuv_stream_t, rbuv_server);
   Data_Get_Struct(client, rbuv_stream_t, rbuv_client);
   
-  RBUV_CHECK_UV_RETURN(uv_accept(rbuv_server->uv_handle, rbuv_client->uv_handle));
+  RBUV_CHECK_UV_RETURN(uv_accept(rbuv_server->uv_handle, rbuv_client->uv_handle), rbuv_client->uv_handle->loop);
   
   return self;
 }
@@ -197,7 +197,7 @@ void __uv_stream_on_connection_no_gvl(uv_stream_t *uv_stream, int status) {
                         RSTRING_PTR(rb_inspect(on_connection)));
   
   if (status == -1) {
-    uv_err = uv_last_error(uv_default_loop());
+    uv_err = uv_last_error(uv_stream->loop);
     RBUV_DEBUG_LOG_DETAIL("uv_stream: %p, status: %d, error: %s", uv_stream, status,
                           uv_strerror(uv_err));
     error = rb_exc_new2(eRbuvError, uv_strerror(uv_err));
@@ -239,7 +239,7 @@ void _uv_stream_on_read_no_gvl(_uv_stream_on_read_arg_t *arg) {
   if (nread > 0) {
     rb_funcall(on_read, id_call, 1, rb_str_new(buf->base, nread));
   } else {
-    uv_err = uv_last_error(uv_default_loop());
+    uv_err = uv_last_error(uv_stream->loop);
     if (uv_err.code == UV_EOF) {
       error = rb_exc_new2(rb_eEOFError, "end of file reached");
     } else {
@@ -261,5 +261,5 @@ void _uv_stream_on_write(uv_write_t *uv_req, int status) {
   free(rbuv_req->buf.base);
   free(rbuv_req);
   
-  RBUV_CHECK_UV_RETURN(status);
+  RBUV_CHECK_UV_RETURN(status, uv_req->handle->loop);
 }

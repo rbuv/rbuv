@@ -25,9 +25,9 @@ extern ID id_call;
 
 extern VALUE mRbuv;
 
-#define RBUV_CHECK_UV_RETURN(uv_ret) do { \
+#define RBUV_CHECK_UV_RETURN(uv_ret, uv_loop) do { \
   if (uv_ret) { \
-    uv_err_t err = uv_last_error(uv_default_loop()); \
+    uv_err_t err = uv_last_error(uv_loop); \
     rb_raise(eRbuvError, "%s", uv_strerror(err)); \
   } \
 } while(0)
