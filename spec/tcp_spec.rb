@@ -20,10 +20,13 @@ describe Rbuv::Tcp do
   it { is_expected.to be_a_kind_of Rbuv::Stream }
 
   it "#bind" do
+    if RUBY_PLATFORM.downcase.include?("linux")
+      pending "this spec does't pass on linux machines, see #1 on github"
+    end
+
     expect(port_in_use?(60000)).to be false
 
     Rbuv.run do
-      skip "this spec does't pass on linux machines, see #1 on github"
       begin
         tcp = Rbuv::Tcp.new
         tcp.bind '127.0.0.1', 60000
