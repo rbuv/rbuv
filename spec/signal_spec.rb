@@ -12,7 +12,7 @@ describe Rbuv::Signal do
         sig.close
       end
 
-      Process.kill(2, Process.pid)
+      `kill -2 #{Process.pid}`
     end
   end
 
@@ -27,7 +27,7 @@ describe Rbuv::Signal do
         sig.stop
       end
 
-      Process.kill(2, Process.pid)
+      `kill -2 #{Process.pid}`
     end
   end
 end
