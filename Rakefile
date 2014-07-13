@@ -36,13 +36,13 @@ namespace :deps do
 
     desc "Update libuv"
     task :update, :version do |t, args|
-      version = args[:version] || '0.10.3'
-      `cd #{deps_dir} && ((curl -L https://github.com/joyent/libuv/archive/v#{version}.tar.gz | tar zx) && (mv libuv libuv.old; mv libuv-#{version} libuv) || (rm -rf libuv-#{version}))`
+      version = args[:version] || 'v0.10.3'
+      `git submodule update --init --recursive "#{libuv_dir}" && cd "#{libuv_dir}" && git checkout -qf #{version}`
     end
 
     desc 'Clean libuv'
     task :clean do
-      `make -C #{libuv_dir} clean`
+      `cd "#{libuv_dir}" && git clean -fdx`
     end
   end
 end
