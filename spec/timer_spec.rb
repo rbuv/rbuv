@@ -1,5 +1,3 @@
-require 'spec_helper'
-
 describe Rbuv::Timer do
   it { is_expected.to be_a_kind_of Rbuv::Handle }
 

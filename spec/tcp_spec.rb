@@ -1,4 +1,3 @@
-require 'spec_helper'
 require 'socket'
 
 def port_in_use?(port, host='127.0.0.1')
