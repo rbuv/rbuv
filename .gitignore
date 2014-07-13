@@ -22,3 +22,4 @@ xcode/
 .rbx/
 .ruby-gemset
 .ruby-version
+.ycm_extra_conf.py
