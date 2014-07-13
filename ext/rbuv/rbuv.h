@@ -2,6 +2,7 @@
 #define RBUV_H_
 
 #include <assert.h>
+#include <stdlib.h>
 
 #include <ruby.h>
 #ifdef HAVE_RUBY_THREAD_H
