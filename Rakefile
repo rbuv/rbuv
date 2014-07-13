@@ -36,7 +36,7 @@ namespace :deps do
 
     desc "Update libuv"
     task :update, :version do |t, args|
-      version = args[:version] || 'v0.10.3'
+      version = args[:version] || 'v0.10.27'
       `git submodule update --init --recursive "#{libuv_dir}" && cd "#{libuv_dir}" && git checkout -qf #{version}`
     end
 
